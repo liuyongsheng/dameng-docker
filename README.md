@@ -123,15 +123,29 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 | `PAGE_CHECK` | `3` | 页校验模式（0=无, 1=CRC32, 2=SHA256, 3=全校验） |
 | `AUTO_OVERWRITE` | `0` | 是否覆盖已有数据库（0=不覆盖, 1=覆盖） |
 | `USE_DB_NAME` | `1` | 是否使用库名作为数据子目录 |
+| `VARCHAR_TYPE` | `1` | VARCHAR 长度单位（0=字节, 1=字符），dminit 后自动写入 dm.ini |
 | `DATA_DIR` | `/opt/dmdbms/data` | 数据目录路径 |
+| `INIT_SCRIPTS_DIR` | `/init-scripts` | 初始化 SQL 脚本目录，首次启动时按文件名顺序执行 |
 
 所有变量通过 `docker run -e KEY=VALUE` 指定，仅首次初始化生效。
 
-> **VARCHAR_TYPE**：控制 VARCHAR 长度单位（0=字节, 1=字符），与 `LENGTH_IN_CHAR` 同义。
-> 当前 DM8 版本（20260414）的 dminit 不支持此参数，初始化后可通过以下方式设置：
-> ```sql
-> SP_SET_PARA_VALUE(2, 'VARCHAR_TYPE', 1);
-> ```
+## 初始化脚本
+
+将 SQL 脚本挂载到 `INIT_SCRIPTS_DIR`（默认 `/init-scripts`），将在数据库首次初始化完成后按文件名顺序自动执行：
+
+```bash
+docker run -v /path/to/scripts:/init-scripts liuys36/dm8:dm8_20260427_x86_rh7_64
+```
+
+示例脚本结构：
+```
+scripts/
+├── 01_create_user.sql       # CREATE USER ...
+├── 02_create_tables.sql     # CREATE TABLE ...
+└── 03_seed_data.sql         # INSERT ...
+```
+
+流程：`dminit` → 临时启动 dmserver → 执行 SQL 脚本 → 重启 dmserver 正式提供服务。
 
 ## 镜像结构
 

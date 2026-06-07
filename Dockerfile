@@ -29,7 +29,7 @@ USER dmdba
 RUN /tmp/DMInstall.bin -q /mnt/dm_install.xml
 USER root
 
-RUN rm -rf /mnt /tmp/DMInstall.bin /opt/dmdbms/doc /opt/dmdbms/desktop /opt/dmdbms/samples /opt/dmdbms/uninstall && \
+RUN rm -rf /mnt /tmp/DMInstall.bin /opt/dmdbms/doc /opt/dmdbms/desktop /opt/dmdbms/samples /opt/dmdbms/uninstall /opt/dmdbms/include /opt/dmdbms/drivers /opt/dmdbms/jdk && \
     mkdir -p /opt/dmdbms/data /opt/dmdbms/log && \
     chown -R dmdba:dinstall /opt/dmdbms
 

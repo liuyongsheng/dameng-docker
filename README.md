@@ -76,16 +76,6 @@ docker run -d --name dm8 \
   liuys36/dm8:dm8_20260427_x86_rh7_64
 ```
 
-### 持久化数据
-
-```bash
-docker run -d --name dm8 \
-  -p 5236:5236 \
-  -v /host/data/path:/opt/dmdbms/data \
-  -e SYSDBA_PWD=YourPwd_123 \
-  dm8:dm8_20260427_x86_rh7_64
-```
-
 ### 自定义数据目录路径
 
 ```bash
@@ -115,7 +105,7 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 | `PAGE_SIZE` | `8` | 页大小（KB） |
 | `EXTENT_SIZE` | `16` | 簇大小（页数） |
 | `LOG_SIZE` | `4096` | 日志文件大小（MB） |
-| `CHARSET` | `1` | 字符集（0=GB18030, 1=UTF-8, 2=GBK） |
+| `CHARSET` | `1` | 字符集（0=GB18030, 1=UTF-8, 2=EUC-KR） |
 | `CASE_SENSITIVE` | `Y` | 大小写敏感（Y/N） |
 | `BUFFER` | `8000` | 系统缓冲区大小（MB） |
 | `TIME_ZONE` | `+08:00` | 时区 |
@@ -123,7 +113,7 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 | `PAGE_CHECK` | `3` | 页校验模式（0=无, 1=CRC32, 2=SHA256, 3=全校验） |
 | `AUTO_OVERWRITE` | `0` | 是否覆盖已有数据库（0=不覆盖, 1=覆盖） |
 | `USE_DB_NAME` | `1` | 是否使用库名作为数据子目录 |
-| `VARCHAR_TYPE` | `1` | VARCHAR 长度单位（0=字节, 1=字符），dminit 后自动写入 dm.ini |
+| `VARCHAR_TYPE` | — | VARCHAR 长度单位（0=字节, 1=字符），留空则不设置，dminit 后自动写入 dm.ini |
 | `DATA_DIR` | `/opt/dmdbms/data` | 数据目录路径 |
 | `INIT_SCRIPTS_DIR` | `/init-scripts` | 初始化 SQL 脚本目录，首次启动时按文件名顺序执行 |
 
@@ -145,13 +135,13 @@ scripts/
 └── 03_seed_data.sql         # INSERT ...
 ```
 
-流程：`dminit` → 临时启动 dmserver → 执行 SQL 脚本 → 重启 dmserver 正式提供服务。
+流程：`dminit` → 临时启动 dmserver → 执行 SQL 脚本 → 停止临时 dmserver → 正式启动 dmserver。
 
 ## 镜像结构
 
 - **Stage 1 (builder)**: 安装 DM8 到 `/opt/dmdbms`，清理 doc/desktop/samples/uninstall/include/drivers/jdk
 - **Stage 2 (runtime)**: 仅复制 DM8 二进制和运行时库，最终镜像约 **165MB**
-- **入口点**: `entrypoint.sh` → `dminit` 初始化 → `dmap` → `dmserver`
+- **入口点**: `entrypoint.sh` → `dminit` 初始化 → [init SQL 脚本] → `dmap` → `dmserver`
 
 ## License
 

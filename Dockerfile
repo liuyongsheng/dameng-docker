@@ -38,7 +38,9 @@ RUN rm -rf /mnt /tmp/DMInstall.bin /opt/dmdbms/doc /opt/dmdbms/desktop /opt/dmdb
 # ============================================================
 FROM debian:12-slim
 
-ENV DM_INSTALL_PATH=/opt/dmdbms \
+ENV DM_HOME=/opt/dmdbms \
+    DM_INSTALL_PATH=/opt/dmdbms \
+    PATH=/opt/dmdbms/bin:$PATH \
     LD_LIBRARY_PATH=/opt/dmdbms/bin \
     CASE_SENSITIVE=Y \
     CHARSET=1 \
@@ -67,6 +69,12 @@ RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debi
 COPY --from=builder /opt/dmdbms /opt/dmdbms
 
 RUN chown -R dmdba:dinstall /opt/dmdbms
+
+RUN echo 'export DM_HOME=/opt/dmdbms' >> /home/dmdba/.bashrc && \
+    echo 'export DM_INSTALL_PATH=/opt/dmdbms' >> /home/dmdba/.bashrc && \
+    echo 'export PATH=/opt/dmdbms/bin:$PATH' >> /home/dmdba/.bashrc && \
+    echo 'export LD_LIBRARY_PATH=/opt/dmdbms/bin' >> /home/dmdba/.bashrc && \
+    chown dmdba:dinstall /home/dmdba/.bashrc
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

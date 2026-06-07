@@ -127,6 +127,12 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 
 所有变量通过 `docker run -e KEY=VALUE` 指定，仅首次初始化生效。
 
+> **VARCHAR_TYPE**：控制 VARCHAR 长度单位（0=字节, 1=字符），与 `LENGTH_IN_CHAR` 同义。
+> 当前 DM8 版本（20260414）的 dminit 不支持此参数，初始化后可通过以下方式设置：
+> ```sql
+> SP_SET_PARA_VALUE(2, 'VARCHAR_TYPE', 1);
+> ```
+
 ## 镜像结构
 
 - **Stage 1 (builder)**: 安装 DM8 到 `/opt/dmdbms`，清理 doc/desktop/samples/uninstall/include/drivers/jdk

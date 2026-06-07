@@ -23,28 +23,31 @@ DATA_DIR=${DATA_DIR:-${DM_INSTALL_PATH}/data}
 if [ ! -f "${DATA_DIR}/${DB_NAME}/dm.ini" ]; then
     echo "Initializing database..."
     ${DM_INSTALL_PATH}/bin/dminit \
-        PATH=${DATA_DIR} \
-        DB_NAME=${DB_NAME} \
-        INSTANCE_NAME=${INSTANCE_NAME} \
-        PORT_NUM=${PORT_NUM} \
-        PAGE_SIZE=${PAGE_SIZE} \
-        EXTENT_SIZE=${EXTENT_SIZE} \
-        LOG_SIZE=${LOG_SIZE} \
-        CHARSET=${CHARSET} \
-        CASE_SENSITIVE=${CASE_SENSITIVE} \
-        BUFFER=${BUFFER} \
-        TIME_ZONE=${TIME_ZONE} \
-        BLANK_PAD_MODE=${BLANK_PAD_MODE} \
-        PAGE_CHECK=${PAGE_CHECK} \
-        SYSDBA_PWD=${SYSDBA_PWD} \
-        SYSAUDITOR_PWD=${SYSAUDITOR_PWD} \
-        AUTO_OVERWRITE=${AUTO_OVERWRITE} \
-        USE_DB_NAME=${USE_DB_NAME}
+        "PATH=${DATA_DIR}" \
+        "DB_NAME=${DB_NAME}" \
+        "INSTANCE_NAME=${INSTANCE_NAME}" \
+        "PORT_NUM=${PORT_NUM}" \
+        "PAGE_SIZE=${PAGE_SIZE}" \
+        "EXTENT_SIZE=${EXTENT_SIZE}" \
+        "LOG_SIZE=${LOG_SIZE}" \
+        "CHARSET=${CHARSET}" \
+        "CASE_SENSITIVE=${CASE_SENSITIVE}" \
+        "BUFFER=${BUFFER}" \
+        "TIME_ZONE=${TIME_ZONE}" \
+        "BLANK_PAD_MODE=${BLANK_PAD_MODE}" \
+        "PAGE_CHECK=${PAGE_CHECK}" \
+        "SYSDBA_PWD=${SYSDBA_PWD}" \
+        "SYSAUDITOR_PWD=${SYSAUDITOR_PWD}" \
+        "AUTO_OVERWRITE=${AUTO_OVERWRITE}" \
+        "USE_DB_NAME=${USE_DB_NAME}"
     echo "Database initialized successfully."
 fi
 
 echo "Starting DmAPService..."
-${DM_INSTALL_PATH}/bin/dmap dmap_ini=${DM_INSTALL_PATH}/bin/dmap.ini &
+${DM_INSTALL_PATH}/bin/dmap "dmap_ini=${DM_INSTALL_PATH}/bin/dmap.ini" &
+DMPID=$!
+sleep 1
+kill -0 $DMPID 2>/dev/null || echo "Warning: DmAPService may not have started"
 
 echo "Starting DMServer..."
 exec ${DM_INSTALL_PATH}/bin/dmserver ${DATA_DIR}/${DB_NAME}/dm.ini -noconsole

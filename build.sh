@@ -10,10 +10,19 @@ ISO_FILE=""
 IMAGE_TAG=""
 
 detect_version() {
-    local zip
-    zip=$(ls "${SCRIPT_DIR}"/dm8_*.zip 2>/dev/null | head -1)
-    [ -z "$zip" ] && { echo "Error: no dm8_*.zip found in ${SCRIPT_DIR}"; exit 1; }
+    local zips
+    zips=$(ls "${SCRIPT_DIR}"/dm8_*.zip 2>/dev/null)
+    [ -z "$zips" ] && { echo "Error: no dm8_*.zip found in ${SCRIPT_DIR}"; exit 1; }
 
+    local count
+    count=$(echo "$zips" | wc -l)
+    [ "$count" -gt 1 ] && {
+        echo "Warning: multiple dm8_*.zip found, using the first one:"
+        echo "$zips" | head -1
+    }
+
+    local zip
+    zip=$(echo "$zips" | head -1)
     ZIP_FILE="$zip"
     local basename
     basename=$(basename "$zip" .zip)

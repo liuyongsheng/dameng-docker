@@ -20,11 +20,30 @@
 
 ## 构建
 
-### 自动构建
+### 自动构建（推荐）
 
 ```bash
-# 确保 dm8_20260427_x86_rh7_64.zip 放在项目目录
+# 将 dm8_*.zip 放在项目目录，一键构建
 ./build.sh
+
+# 脚本会自动完成：解压 zip → 提取 DMInstall.bin → 构建镜像
+# 镜像名自动从 zip 文件名获取：liuys36/dm8:<zip_文件名>
+```
+
+### 更新版本
+
+```bash
+# 只需替换 dm8_*.zip 文件，重新构建即可
+./build.sh
+```
+
+### 管理容器
+
+```bash
+./build.sh run                # 启动容器（默认密码 DMdba_123）
+SYSDBA_PWD=MyPwd_123 ./build.sh run  # 指定密码启动
+./build.sh stop               # 停止并删除容器
+./build.sh clean              # 删除 DMInstall.bin
 ```
 
 ### 手动构建
@@ -43,10 +62,18 @@ docker buildx build --platform linux/amd64 --load -t dm8:dm8_20260427_x86_rh7_64
 ### 基本启动
 
 ```bash
+./build.sh run
+# 或指定密码：SYSDBA_PWD=YourPwd_123 ./build.sh run
+```
+
+### 持久化数据
+
+```bash
 docker run -d --name dm8 \
   -p 5236:5236 \
+  -v /host/data/path:/opt/dmdbms/data \
   -e SYSDBA_PWD=YourPwd_123 \
-  dm8:dm8_20260427_x86_rh7_64
+  liuys36/dm8:dm8_20260427_x86_rh7_64
 ```
 
 ### 持久化数据
@@ -67,7 +94,7 @@ docker run -d --name dm8 \
   -v /host/data/path:/dmdata \
   -e DATA_DIR=/dmdata \
   -e SYSDBA_PWD=YourPwd_123 \
-  dm8:dm8_20260427_x86_rh7_64
+  liuys36/dm8:dm8_20260427_x86_rh7_64
 ```
 
 ### 连接测试
@@ -102,8 +129,8 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 
 ## 镜像结构
 
-- **Stage 1 (builder)**: 安装 DM8 到 `/opt/dmdbms`
-- **Stage 2 (runtime)**: 复制 DM8 二进制，移除文档/samples/uninstall，保留最小运行环境
+- **Stage 1 (builder)**: 安装 DM8 到 `/opt/dmdbms`，清理 doc/desktop/samples/uninstall/include/drivers/jdk
+- **Stage 2 (runtime)**: 仅复制 DM8 二进制和运行时库，最终镜像约 **165MB**
 - **入口点**: `entrypoint.sh` → `dminit` 初始化 → `dmap` → `dmserver`
 
 ## License

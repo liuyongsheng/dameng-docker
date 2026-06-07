@@ -5,6 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INSTALLER="${SCRIPT_DIR}/DMInstall.bin"
 IMAGE_NAME="liuys36/dm8"
 CONTAINER_NAME="dm8"
+ZIP_FILE=""
+ISO_FILE=""
+IMAGE_TAG=""
 
 detect_version() {
     local zip

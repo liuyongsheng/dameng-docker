@@ -4,6 +4,10 @@
 DMInstall.bin
 DMInstall.bin.manifest
 
+# Extracted artifacts from zip/ISO
+*.README
+*_SHA256.txt
+
 # Data directory (runtime mount)
 data/
 log/

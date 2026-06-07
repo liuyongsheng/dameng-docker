@@ -3,7 +3,7 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INSTALLER="${SCRIPT_DIR}/DMInstall.bin"
-IMAGE_NAME="liuys36/dm8"
+IMAGE_NAME="liuys36/dameng"
 ZIP_FILE=""
 IMAGE_TAG=""
 

@@ -37,15 +37,6 @@
 ./build.sh
 ```
 
-### 管理容器
-
-```bash
-./build.sh run                # 启动容器（默认密码 DMdba_123）
-SYSDBA_PWD=MyPwd_123 ./build.sh run  # 指定密码启动
-./build.sh stop               # 停止并删除容器
-./build.sh clean              # 删除 DMInstall.bin
-```
-
 ### 手动构建
 
 ```bash
@@ -62,8 +53,10 @@ docker buildx build --platform linux/amd64 --load -t dm8:dm8_20260427_x86_rh7_64
 ### 基本启动
 
 ```bash
-./build.sh run
-# 或指定密码：SYSDBA_PWD=YourPwd_123 ./build.sh run
+docker run -d --name dm8 \
+  -p 5236:5236 \
+  -e SYSDBA_PWD=DMdba_123 \
+  liuys36/dm8:dm8_20260427_x86_rh7_64
 ```
 
 ### 持久化数据
@@ -107,7 +100,7 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 | `LOG_SIZE` | `50` | 日志文件大小（MB） |
 | `CHARSET` | `1` | 字符集（0=GB18030, 1=UTF-8, 2=EUC-KR） |
 | `CASE_SENSITIVE` | `Y` | 大小写敏感（Y/N） |
-| `BUFFER` | `8000` | 系统缓冲区大小（MB） |
+| `BUFFER` | `1024` | 数据缓冲区大小（MB） |
 | `TIME_ZONE` | `+08:00` | 时区 |
 | `BLANK_PAD_MODE` | `0` | 空格填充模式（0=不填充, 1=填充） |
 | `PAGE_CHECK` | `3` | 页校验模式（0=无, 1=CRC32, 2=SHA256, 3=全校验） |

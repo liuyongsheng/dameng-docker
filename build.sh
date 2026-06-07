@@ -2,21 +2,31 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ZIP_FILE="${SCRIPT_DIR}/dm8_20260427_x86_rh7_64.zip"
-ISO_FILE="${SCRIPT_DIR}/dm8_20260427_x86_rh7_64.iso"
 INSTALLER="${SCRIPT_DIR}/DMInstall.bin"
 IMAGE_NAME="liuys36/dm8"
-IMAGE_TAG="dm8_20260427_x86_rh7_64"
 CONTAINER_NAME="dm8"
 
+detect_version() {
+    local zip
+    zip=$(ls "${SCRIPT_DIR}"/dm8_*.zip 2>/dev/null | head -1)
+    [ -z "$zip" ] && { echo "Error: no dm8_*.zip found in ${SCRIPT_DIR}"; exit 1; }
+
+    ZIP_FILE="$zip"
+    local basename
+    basename=$(basename "$zip" .zip)
+    ISO_FILE="${SCRIPT_DIR}/${basename}.iso"
+    IMAGE_TAG="${basename}"
+}
+
 extract() {
+    detect_version
+
     if [ -f "${INSTALLER}" ]; then
         echo "DMInstall.bin already exists, skip extraction."
         return
     fi
-    echo "Extracting DMInstall.bin from zip/ISO..."
-    [ ! -f "${ZIP_FILE}" ] && { echo "Error: ${ZIP_FILE} not found."; exit 1; }
 
+    echo "Extracting DMInstall.bin from ${ZIP_FILE}..."
     echo "-> Extracting ISO from zip..."
     unzip -o "${ZIP_FILE}" -d "${SCRIPT_DIR}" 2>/dev/null
     [ ! -f "${ISO_FILE}" ] && { echo "Error: ISO extraction failed."; exit 1; }
@@ -34,10 +44,12 @@ extract() {
         exit 1
     fi
     chmod +x "${INSTALLER}"
+    rm -f "${ISO_FILE}"
     echo "Extraction done."
 }
 
 build() {
+    rm -f "${INSTALLER}"
     extract
     echo "Building ${IMAGE_NAME}:${IMAGE_TAG} ..."
     docker buildx build \
@@ -51,6 +63,7 @@ build() {
 }
 
 run() {
+    detect_version
     local pwd="${SYSDBA_PWD:-DMdba_123}"
     docker run -d --name "${CONTAINER_NAME}" \
         -p 5236:5236 \
@@ -67,8 +80,8 @@ stop() {
 }
 
 clean() {
-    rm -f "${INSTALLER}" "${ISO_FILE}"
-    echo "Cleaned: DMInstall.bin and ISO."
+    rm -f "${INSTALLER}"
+    echo "Cleaned: DMInstall.bin."
 }
 
 case "${1:-build}" in
@@ -82,7 +95,7 @@ case "${1:-build}" in
         echo "  build  Extract installer and build Docker image (default)"
         echo "  run    Start DM8 container"
         echo "  stop   Stop and remove DM8 container"
-        echo "  clean  Remove DMInstall.bin and ISO"
+        echo "  clean  Remove DMInstall.bin"
         exit 1
         ;;
 esac

@@ -29,7 +29,9 @@ USER dmdba
 RUN /tmp/DMInstall.bin -q /mnt/dm_install.xml
 USER root
 
-RUN rm -rf /mnt /tmp/DMInstall.bin
+RUN rm -rf /mnt /tmp/DMInstall.bin /opt/dmdbms/doc /opt/dmdbms/desktop /opt/dmdbms/samples /opt/dmdbms/uninstall && \
+    mkdir -p /opt/dmdbms/data /opt/dmdbms/log && \
+    chown -R dmdba:dinstall /opt/dmdbms
 
 # ============================================================
 # Stage 2: Runtime image (minimal)
@@ -64,9 +66,7 @@ RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debi
 
 COPY --from=builder /opt/dmdbms /opt/dmdbms
 
-RUN rm -rf /opt/dmdbms/doc /opt/dmdbms/desktop /opt/dmdbms/samples /opt/dmdbms/uninstall && \
-    mkdir -p /opt/dmdbms/data /opt/dmdbms/log && \
-    chown -R dmdba:dinstall /opt/dmdbms
+RUN chown -R dmdba:dinstall /opt/dmdbms
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

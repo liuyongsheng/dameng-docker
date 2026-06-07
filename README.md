@@ -104,7 +104,7 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 | `PORT_NUM` | `5236` | 端口号 |
 | `PAGE_SIZE` | `8` | 页大小（KB） |
 | `EXTENT_SIZE` | `16` | 簇大小（页数） |
-| `LOG_SIZE` | `4096` | 日志文件大小（MB） |
+| `LOG_SIZE` | `50` | 日志文件大小（MB） |
 | `CHARSET` | `1` | 字符集（0=GB18030, 1=UTF-8, 2=EUC-KR） |
 | `CASE_SENSITIVE` | `Y` | 大小写敏感（Y/N） |
 | `BUFFER` | `8000` | 系统缓冲区大小（MB） |

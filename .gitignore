@@ -1,0 +1,13 @@
+# Large binaries
+*.iso
+*.zip
+DMInstall.bin
+DMInstall.bin.manifest
+
+# Data directory (runtime mount)
+data/
+log/
+
+# OS files
+.DS_Store
+Thumbs.db

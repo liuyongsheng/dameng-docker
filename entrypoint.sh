@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+DM_INSTALL_PATH=${DM_INSTALL_PATH:-/opt/dmdbms}
+DB_NAME=${DB_NAME:-DAMENG}
+INSTANCE_NAME=${INSTANCE_NAME:-DMSERVER}
+PORT_NUM=${PORT_NUM:-5236}
+PAGE_SIZE=${PAGE_SIZE:-8}
+EXTENT_SIZE=${EXTENT_SIZE:-16}
+LOG_SIZE=${LOG_SIZE:-4096}
+CHARSET=${CHARSET:-1}
+CASE_SENSITIVE=${CASE_SENSITIVE:-Y}
+BUFFER=${BUFFER:-8000}
+TIME_ZONE=${TIME_ZONE:-+08:00}
+BLANK_PAD_MODE=${BLANK_PAD_MODE:-0}
+PAGE_CHECK=${PAGE_CHECK:-3}
+SYSDBA_PWD=${SYSDBA_PWD:-DMdba_123}
+SYSAUDITOR_PWD=${SYSAUDITOR_PWD:-DMAuditor_123}
+AUTO_OVERWRITE=${AUTO_OVERWRITE:-0}
+USE_DB_NAME=${USE_DB_NAME:-1}
+DATA_DIR=${DATA_DIR:-${DM_INSTALL_PATH}/data}
+
+if [ ! -f "${DATA_DIR}/${DB_NAME}/dm.ini" ]; then
+    echo "Initializing database..."
+    ${DM_INSTALL_PATH}/bin/dminit \
+        PATH=${DATA_DIR} \
+        DB_NAME=${DB_NAME} \
+        INSTANCE_NAME=${INSTANCE_NAME} \
+        PORT_NUM=${PORT_NUM} \
+        PAGE_SIZE=${PAGE_SIZE} \
+        EXTENT_SIZE=${EXTENT_SIZE} \
+        LOG_SIZE=${LOG_SIZE} \
+        CHARSET=${CHARSET} \
+        CASE_SENSITIVE=${CASE_SENSITIVE} \
+        BUFFER=${BUFFER} \
+        TIME_ZONE=${TIME_ZONE} \
+        BLANK_PAD_MODE=${BLANK_PAD_MODE} \
+        PAGE_CHECK=${PAGE_CHECK} \
+        SYSDBA_PWD=${SYSDBA_PWD} \
+        SYSAUDITOR_PWD=${SYSAUDITOR_PWD} \
+        AUTO_OVERWRITE=${AUTO_OVERWRITE} \
+        USE_DB_NAME=${USE_DB_NAME}
+    echo "Database initialized successfully."
+fi
+
+echo "Starting DmAPService..."
+${DM_INSTALL_PATH}/bin/dmap dmap_ini=${DM_INSTALL_PATH}/bin/dmap.ini &
+
+echo "Starting DMServer..."
+exec ${DM_INSTALL_PATH}/bin/dmserver ${DATA_DIR}/${DB_NAME}/dm.ini -noconsole

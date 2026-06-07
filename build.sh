@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ZIP_FILE="${SCRIPT_DIR}/dm8_20260427_x86_rh7_64.zip"
 ISO_FILE="${SCRIPT_DIR}/dm8_20260427_x86_rh7_64.iso"
 INSTALLER="${SCRIPT_DIR}/DMInstall.bin"
-IMAGE_NAME="dm8"
+IMAGE_NAME="liuys36/dm8"
 IMAGE_TAG="dm8_20260427_x86_rh7_64"
 CONTAINER_NAME="dm8"
 

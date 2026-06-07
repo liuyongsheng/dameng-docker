@@ -7,15 +7,18 @@ ISO_FILE="${SCRIPT_DIR}/dm8_20260427_x86_rh7_64.iso"
 INSTALLER="${SCRIPT_DIR}/DMInstall.bin"
 IMAGE_NAME="dm8"
 IMAGE_TAG="dm8_20260427_x86_rh7_64"
+CONTAINER_NAME="dm8"
 
-if [ ! -f "${INSTALLER}" ]; then
+extract() {
+    if [ -f "${INSTALLER}" ]; then
+        echo "DMInstall.bin already exists, skip extraction."
+        return
+    fi
     echo "Extracting DMInstall.bin from zip/ISO..."
-
     [ ! -f "${ZIP_FILE}" ] && { echo "Error: ${ZIP_FILE} not found."; exit 1; }
 
     echo "-> Extracting ISO from zip..."
     unzip -o "${ZIP_FILE}" -d "${SCRIPT_DIR}" 2>/dev/null
-
     [ ! -f "${ISO_FILE}" ] && { echo "Error: ISO extraction failed."; exit 1; }
 
     echo "-> Extracting DMInstall.bin from ISO..."
@@ -30,28 +33,56 @@ if [ ! -f "${INSTALLER}" ]; then
         echo "Install: brew install p7zip"
         exit 1
     fi
-
     chmod +x "${INSTALLER}"
-    echo "Done."
-fi
+    echo "Extraction done."
+}
 
-echo "Building ${IMAGE_NAME}:${IMAGE_TAG} ..."
-docker buildx build \
-    --platform linux/amd64 \
-    --load \
-    -t "${IMAGE_NAME}:${IMAGE_TAG}" \
-    -f "${SCRIPT_DIR}/Dockerfile" \
-    "${SCRIPT_DIR}"
+build() {
+    extract
+    echo "Building ${IMAGE_NAME}:${IMAGE_TAG} ..."
+    docker buildx build \
+        --platform linux/amd64 \
+        --load \
+        -t "${IMAGE_NAME}:${IMAGE_TAG}" \
+        -f "${SCRIPT_DIR}/Dockerfile" \
+        "${SCRIPT_DIR}"
+    echo ""
+    echo "Build complete: ${IMAGE_NAME}:${IMAGE_TAG}"
+}
 
-echo ""
-echo "===== Build complete: ${IMAGE_NAME}:${IMAGE_TAG} ====="
-echo ""
-echo "Run container:"
-echo "  docker run -d --name dm8 \\"
-echo "    -p 5236:5236 \\"
-echo "    -e SYSDBA_PWD=YourPwd_123 \\"
-echo "    -e SYSAUDITOR_PWD=YourPwd_123 \\"
-echo "    ${IMAGE_NAME}:${IMAGE_TAG}"
-echo ""
-echo "Cleanup DMInstall.bin (optional):"
-echo "  rm ${INSTALLER}"
+run() {
+    local pwd="${SYSDBA_PWD:-DMdba_123}"
+    docker run -d --name "${CONTAINER_NAME}" \
+        -p 5236:5236 \
+        -e SYSDBA_PWD="${pwd}" \
+        "${IMAGE_NAME}:${IMAGE_TAG}"
+    echo "Container '${CONTAINER_NAME}' started, port 5236."
+    echo "Connect: docker exec ${CONTAINER_NAME} /opt/dmdbms/bin/disql SYSDBA/${pwd}@localhost:5236"
+}
+
+stop() {
+    docker stop "${CONTAINER_NAME}" 2>/dev/null || true
+    docker rm "${CONTAINER_NAME}" 2>/dev/null || true
+    echo "Container '${CONTAINER_NAME}' stopped and removed."
+}
+
+clean() {
+    rm -f "${INSTALLER}" "${ISO_FILE}"
+    echo "Cleaned: DMInstall.bin and ISO."
+}
+
+case "${1:-build}" in
+    build)  build ;;
+    run)    run ;;
+    stop)   stop ;;
+    clean)  clean ;;
+    *)
+        echo "Usage: $0 {build|run|stop|clean}"
+        echo ""
+        echo "  build  Extract installer and build Docker image (default)"
+        echo "  run    Start DM8 container"
+        echo "  stop   Stop and remove DM8 container"
+        echo "  clean  Remove DMInstall.bin and ISO"
+        exit 1
+        ;;
+esac

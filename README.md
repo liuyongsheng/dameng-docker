@@ -1,52 +1,75 @@
 # DM8 Docker
 
-达梦数据库 DM8 Docker 镜像，基于 Debian 12 slim 构建。
+达梦数据库 DM8 Docker 镜像，基于 Debian 12 slim 构建，支持 AMD64 和 ARM64 双平台。
 
 ## 目录结构
 
 ```
 ├── Dockerfile        # 多阶段构建：安装 + 运行
-├── build.sh          # 一键构建脚本
+├── build.sh          # 一键构建脚本（双平台支持）
 ├── entrypoint.sh     # 容器入口脚本（初始化 + 启动）
 ├── dm_install.xml    # DM8 静默安装配置
-├── dm8_*.zip         # 达梦安装包（需自行下载）
-└── DMInstall.bin     # 解压后的安装程序（自动生成）
+├── dm8_*x86*.zip     # 达梦 x86 安装包
+├── dm8_*arm*.zip     # 达梦 ARM64 安装包
+└── .cache/           # 缓存目录（解压后的 DMInstall-*.bin，自动生成）
 ```
 
 ## 环境要求
 
 - Docker (推荐 colima 或 Docker Desktop)
-- Apple Silicon 用户需启用 Rosetta：`colima start --arch x86_64 --vz-rosetta`
+- Docker BuildKit（默认已启用）
+- 解压工具：p7zip / xorriso / isoinfo（任一即可）
+  ```bash
+  brew install p7zip    # macOS 推荐
+  ```
 
-## 构建
+## 双平台构建
 
-### 自动构建（推荐）
+将对应架构的 dm8_*.zip 放入项目目录，脚本自动识别架构并构建：
 
 ```bash
-# 将 dm8_*.zip 放在项目目录，一键构建
+# 自动识别并构建（仅一个 zip 时）
 ./build.sh
 
-# 脚本会自动完成：解压 zip → 提取 DMInstall.bin → 构建镜像
-# 镜像名自动从 zip 文件名获取：liuys36/dm8:<zip_文件名>
+# 指定架构
+./build.sh --arch amd64
+./build.sh --arch arm64
+
+# 两个架构同时构建
+./build.sh --all
 ```
 
-### 更新版本
+镜像标签：
+- `liuys36/dameng:8-amd64` — AMD64 (本地构建和推送均一致)
+- `liuys36/dameng:8-arm64` — ARM64 (本地构建和推送均一致)
+- `liuys36/dameng:8-slim` — Multi-arch manifest（推送时自动创建）
+
+## 推送 Multi-arch Manifest
+
+将双架构镜像推送到 registry，统一通过 `liuys36/dameng:8-slim` 对外暴露：
 
 ```bash
-# 只需替换 dm8_*.zip 文件，重新构建即可
-./build.sh
+# 构建 + 推送一键完成
+./build.sh --all --push
+
+# 本地已有镜像，只推送不打镜像
+./build.sh push
+
+# 镜像已在 registry，只创建 manifest
+./build.sh manifest
+
+# 单架构推送
+./build.sh --arch arm64 --push
 ```
 
-### 手动构建
+实现原理：
+1. 分别构建并推送 `liuys36/dameng:8-amd64` 和 `liuys36/dameng:8-arm64` 到 registry
+2. 创建 multi-arch manifest `liuys36/dameng:8-slim`，指向两个架构
+3. 用户 `docker pull liuys36/dameng:8-slim` 时 Docker 自动匹配架构
 
-```bash
-# 从 zip 中提取安装程序
-unzip dm8_20260427_x86_rh7_64.zip
-# 从 ISO 中提取 DMInstall.bin（需要 7z / xorriso / isoinfo）
+### 缓存说明
 
-# 构建镜像
-docker buildx build --platform linux/amd64 --load -t dm8:dm8_20260427_x86_rh7_64 .
-```
+首次解压后，DMInstall.bin 缓存到 `.cache/` 目录，后续构建跳过解压步骤。如需重新解压请先执行 `./build.sh clean`。
 
 ## 使用
 
@@ -56,7 +79,7 @@ docker buildx build --platform linux/amd64 --load -t dm8:dm8_20260427_x86_rh7_64
 docker run -d --name dm8 \
   -p 5236:5236 \
   -e SYSDBA_PWD=DMdba_123 \
-  liuys36/dm8:dm8_20260427_x86_rh7_64
+  liuys36/dameng:8-slim
 ```
 
 ### 持久化数据
@@ -66,7 +89,7 @@ docker run -d --name dm8 \
   -p 5236:5236 \
   -v /host/data/path:/opt/dmdbms/data \
   -e SYSDBA_PWD=YourPwd_123 \
-  liuys36/dm8:dm8_20260427_x86_rh7_64
+  liuys36/dameng:8-slim
 ```
 
 ### 自定义数据目录路径
@@ -77,7 +100,7 @@ docker run -d --name dm8 \
   -v /host/data/path:/dmdata \
   -e DATA_DIR=/dmdata \
   -e SYSDBA_PWD=YourPwd_123 \
-  liuys36/dm8:dm8_20260427_x86_rh7_64
+  liuys36/dameng:8-slim
 ```
 
 ### 连接测试
@@ -112,12 +135,21 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 
 所有变量通过 `docker run -e KEY=VALUE` 指定，仅首次初始化生效。
 
+## 构建来源
+
+镜像包含 `dm8.zip` label，记录构建时使用的安装包文件名：
+
+```bash
+docker inspect --format '{{.Config.Labels.dm8.zip}}' liuys36/dameng:8-arm64
+# dm8_20260417_HWarm920_kylin10_sp1_64.zip
+```
+
 ## 初始化脚本
 
 将 SQL 脚本挂载到 `INIT_SCRIPTS_DIR`（默认 `/init-scripts`），将在数据库首次初始化完成后按文件名顺序自动执行：
 
 ```bash
-docker run -v /path/to/scripts:/init-scripts liuys36/dm8:dm8_20260427_x86_rh7_64
+docker run -v /path/to/scripts:/init-scripts liuys36/dameng:8-slim
 ```
 
 示例脚本结构：
@@ -132,9 +164,10 @@ scripts/
 
 ## 镜像结构
 
-- **Stage 1 (builder)**: 安装 DM8 到 `/opt/dmdbms`，清理 doc/desktop/samples/uninstall/include/drivers/jdk
+- **Stage 1 (builder)**: 根据 `TARGETARCH` 选择对应架构的 DMInstall.bin，安装 DM8 到 `/opt/dmdbms`，清理 doc/desktop/samples/uninstall/include/drivers/jdk
 - **Stage 2 (runtime)**: 仅复制 DM8 二进制和运行时库，最终镜像约 **165MB**
 - **入口点**: `entrypoint.sh` → `dminit` 初始化 → [init SQL 脚本] → `dmap` → `dmserver`
+- **双平台**: build.sh 自动从 zip 文件名识别架构，构建时复制对应 DMInstall.bin 到构建上下文；`--push` 模式自动创建 multi-arch manifest
 
 ## License
 

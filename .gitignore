@@ -1,7 +1,10 @@
+# Cache directory (extracted binaries)
+.cache/
+
 # Large binaries
 *.iso
 *.zip
-DMInstall.bin
+DMInstall*.bin
 DMInstall.bin.manifest
 
 # Extracted artifacts from zip/ISO

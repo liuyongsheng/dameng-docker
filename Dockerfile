@@ -1,7 +1,12 @@
+ARG DM8_ZIP=unknown
+ARG DM8_ARCH
+
 # ============================================================
 # Stage 1: Install DM8 (builder)
 # ============================================================
 FROM debian:12-slim AS builder
+ARG DM8_ZIP
+ARG DM8_ARCH
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -18,7 +23,7 @@ RUN sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debi
     echo "dmdba hard data 1048576" >> /etc/security/limits.conf && \
     echo "dmdba soft data 1048576" >> /etc/security/limits.conf
 
-COPY ./DMInstall.bin /tmp/DMInstall.bin
+COPY ./DMInstall-${DM8_ARCH}.bin /tmp/DMInstall.bin
 COPY ./dm_install.xml /mnt/dm_install.xml
 
 RUN mkdir -p /opt/dmdbms && \
@@ -37,6 +42,8 @@ RUN rm -rf /mnt /tmp/DMInstall.bin /opt/dmdbms/doc /opt/dmdbms/desktop /opt/dmdb
 # Stage 2: Runtime image (minimal)
 # ============================================================
 FROM debian:12-slim
+ARG DM8_ZIP
+LABEL dm8.zip=${DM8_ZIP}
 
 ENV DM_HOME=/opt/dmdbms \
     DM_INSTALL_PATH=/opt/dmdbms \

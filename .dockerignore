@@ -4,5 +4,6 @@
 *.txt
 .git
 .gitignore
+.cache/
 data/
 log/

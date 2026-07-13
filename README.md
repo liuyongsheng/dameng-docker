@@ -25,7 +25,17 @@
 
 ## 双平台构建
 
-将对应架构的 dm8_*.zip 放入项目目录，脚本自动识别架构并构建：
+### 下载安装包
+
+1. **AMD64** — 从 [达梦官网下载](https://www.dameng.com) 或 [达梦技术社区](https://eco.dameng.com/download/) 下载 X86 版本（文件名含 `x86`）
+2. **ARM64** — 同样从达梦官方下载，选择 ARM 版本（文件名含 `arm`，如 `dm8_20260417_HWarm920_kylin10_sp1_64.zip`）
+
+将下载的 `dm8_*.zip` 放入项目目录，脚本通过文件名自动识别架构：
+
+```bash
+# 查看当前可识别的 zip
+ls dm8_*.zip
+```
 
 ```bash
 # 自动识别并构建（仅一个 zip 时）
@@ -130,6 +140,7 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 | `AUTO_OVERWRITE` | `0` | 是否覆盖已有数据库（0=不覆盖, 1=覆盖） |
 | `USE_DB_NAME` | `1` | 是否使用库名作为数据子目录 |
 | `VARCHAR_TYPE` | — | VARCHAR 长度单位（0=字节, 1=字符），留空则不设置，dminit 后自动写入 dm.ini |
+| `ENABLE_FLASHBACK` | `1` | 启用闪回功能（1=开启, 0=关闭），开启后在 dm.ini 写入 `ENABLE_FLASH = 1` |
 | `DATA_DIR` | `/opt/dmdbms/data` | 数据目录路径 |
 | `INIT_SCRIPTS_DIR` | `/init-scripts` | 初始化 SQL 脚本目录，首次启动时按文件名顺序执行 |
 

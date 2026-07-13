@@ -61,6 +61,7 @@ ENV DM_HOME=/opt/dmdbms \
     TIME_ZONE=+08:00 \
     BLANK_PAD_MODE=0 \
     PAGE_CHECK=3 \
+    ENABLE_FLASHBACK=1 \
     SYSDBA_PWD=DMdba_123 \
     SYSAUDITOR_PWD=DMAuditor_123 \
     DATA_DIR=/opt/dmdbms/data

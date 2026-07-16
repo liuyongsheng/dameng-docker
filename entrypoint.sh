@@ -24,7 +24,7 @@ SYSAUDITOR_PWD=${SYSAUDITOR_PWD:-DMAuditor_123}
 AUTO_OVERWRITE=${AUTO_OVERWRITE:-0}
 USE_DB_NAME=${USE_DB_NAME:-1}
 VARCHAR_TYPE=${VARCHAR_TYPE:-}
-ENABLE_FLASHBACK=${ENABLE_FLASHBACK:-1}
+ENABLE_FLASHBACK=${ENABLE_FLASHBACK:-0}
 DATA_DIR=${DATA_DIR:-${DM_INSTALL_PATH}/data}
 INIT_SCRIPTS_DIR=${INIT_SCRIPTS_DIR:-/init-scripts}
 
@@ -59,7 +59,7 @@ if [ ! -f "${DATA_DIR}/${DB_NAME}/dm.ini" ]; then
     fi
 
     if [ "${ENABLE_FLASHBACK}" = "1" ]; then
-        echo "ENABLE_FLASH = 1" >> "${DATA_DIR}/${DB_NAME}/dm.ini"
+        echo "ENABLE_FLASHBACK = 1" >> "${DATA_DIR}/${DB_NAME}/dm.ini"
         echo "Flashback enabled in dm.ini"
     fi
 

@@ -25,6 +25,7 @@ AUTO_OVERWRITE=${AUTO_OVERWRITE:-0}
 USE_DB_NAME=${USE_DB_NAME:-1}
 VARCHAR_TYPE=${VARCHAR_TYPE:-}
 ENABLE_FLASHBACK=${ENABLE_FLASHBACK:-0}
+UNDO_RETENTION=${UNDO_RETENTION:-}
 DATA_DIR=${DATA_DIR:-${DM_INSTALL_PATH}/data}
 INIT_SCRIPTS_DIR=${INIT_SCRIPTS_DIR:-/init-scripts}
 
@@ -61,6 +62,11 @@ if [ ! -f "${DATA_DIR}/${DB_NAME}/dm.ini" ]; then
     if [ "${ENABLE_FLASHBACK}" = "1" ]; then
         echo "ENABLE_FLASHBACK = 1" >> "${DATA_DIR}/${DB_NAME}/dm.ini"
         echo "Flashback enabled in dm.ini"
+    fi
+
+    if [ -n "${UNDO_RETENTION}" ]; then
+        echo "UNDO_RETENTION = ${UNDO_RETENTION}" >> "${DATA_DIR}/${DB_NAME}/dm.ini"
+        echo "UNDO_RETENTION set to ${UNDO_RETENTION} in dm.ini"
     fi
 
     echo "Database initialized successfully."

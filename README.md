@@ -141,6 +141,7 @@ docker exec dm8 /opt/dmdbms/bin/disql SYSDBA/YourPwd_123@localhost:5236
 | `USE_DB_NAME` | `1` | 是否使用库名作为数据子目录 |
 | `VARCHAR_TYPE` | — | VARCHAR 长度单位（0=字节, 1=字符），留空则不设置，dminit 后自动写入 dm.ini |
 | `ENABLE_FLASHBACK` | `0` | 启用闪回功能（1=开启, 0=关闭），开启后在 dm.ini 写入 `ENABLE_FLASHBACK = 1` |
+| `UNDO_RETENTION` | `90` | 回滚页保留时间（秒，范围 0~86400），设为较大值（如 600）可延长闪回查询窗口，在 dm.ini 写入 `UNDO_RETENTION = <值>` |
 | `DATA_DIR` | `/opt/dmdbms/data` | 数据目录路径 |
 | `INIT_SCRIPTS_DIR` | `/init-scripts` | 初始化 SQL 脚本目录，首次启动时按文件名顺序执行 |
 
